@@ -3,8 +3,8 @@
 using namespace std;
 
 GameManager::GameManager() {
-	gWindow = nullptr;
-	gRenderer = nullptr;
+	gWindow = nullptr; // puntero
+	gRenderer = nullptr; // puntero
 	gScreenSurface = nullptr;
 	//gPacManSurface = nullptr;
 	gPacmanTexture = nullptr;
