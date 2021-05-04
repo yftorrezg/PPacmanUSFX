@@ -1,67 +1,86 @@
 #include "GameManager.h"
 
 using namespace std;
-
 GameManager::GameManager() {
-	gWindow = nullptr; // puntero
-	gRenderer = nullptr; // puntero
+	gWindow = nullptr;
+	gRenderer = nullptr;
 	gScreenSurface = nullptr;
-	//gPacManSurface = nullptr;
-	gPacmanTexture = nullptr;
-	gFantasmaSurface = nullptr;
-	gFrutaSurface = nullptr;
-
 	juego_en_ejecucion = true;
-	//pacman = new Pacman(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, 5);
-	
-	fruta = new Fruta();
 }
 
 int GameManager::onExecute() {
     if (onInit() == false) {
         return -1;
     }
-	//pacman = new Pacman(gWindow, gRenderer, gScreenSurface, gPacManSurface);
-	//pacman = new Pacman(gWindow, gRenderer, gScreenSurface, gPacManSurface, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, 5);
-	pacman = new Pacman(gWindow, gRenderer, gScreenSurface, gPacmanTexture, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, 5);
+	//// llamando a pacman
+	//actoresJuego.push_back(new Pacman(PacmanTexture, SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2, 25, 25, SCREEN_WIDTH, SCREEN_HEIGHT, 5,0,0));
+	///*cout << pacman->getIdObjeto() << endl;*/
+	////funcion fantasma
+	//for (int i = 0; i <= 3; i++) {
+	//	actoresJuego.push_back(new Fantasma(fantasmaTexture, 100, 50+(i*50), 25, 25, SCREEN_WIDTH, SCREEN_HEIGHT, 5,0));
+	//}
+	//
+	////funcion fruta
+	//for (int i = 0; i <= 4; i++) {
+	//	actoresJuego.push_back(new Fruta(FrutaTexture, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 25, 25, SCREEN_WIDTH, SCREEN_HEIGHT,0));
+	//}
+	////funcion moneda
+	//int posx = 0;
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	posx = i * 50;
+	//	actoresJuego.push_back(new Moneda(MonedaTexture, posx, 100, 50, 50, SCREEN_WIDTH, SCREEN_HEIGHT));
+	//}
+	//// funcion supermoneda
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	actoresJuego.push_back(new Moneda(SuperMonedaTexture, 50 + (i * 50), 50 + (i * 50), 50, 50, SCREEN_WIDTH, SCREEN_HEIGHT));
+	//}
+	////funcion muros;
+	//for (int i = 0; i < 10; i++)
+	//{	
+	//	actoresJuego.push_back(new Muros(MurosTexture, i*50, i*50, 25, 25, SCREEN_WIDTH, SCREEN_HEIGHT));
+	//}
+	//comprobando los actores
+	/*for (int i = 0; i < actoresJuego.size(); i++) {
+		cout << actoresJuego[i]->getIdObjeto() << endl;
+	}*/
 
 	srand(time(NULL));
 
-	//pacman->window = gWindow;
-	//pacman->renderer = gRenderer;
-	//pacman->screenSurface = gScreenSurface;
-	//pacman->pacmanSurface = gPacManSurface;
+	generadorNivelJuego = new MapGenerator(SCREEN_WIDTH, SCREEN_HEIGHT);
+	generadorNivelJuego->load("Resources/mapa.txt");
+	generadorNivelJuego->populate(actoresJuego);
 
-	fantasma.window = gWindow;
-	fantasma.renderer = gRenderer;
-	fantasma.screenSurface = gScreenSurface;
-	fantasma.fantasmaSurface = gFantasmaSurface;
-
-	fruta->window = gWindow;
-	fruta->renderer = gRenderer;
-	fruta->screenSurface = gScreenSurface;
-	fruta->frutaSurface = gFrutaSurface;
 
     SDL_Event Event;
 
     while (juego_en_ejecucion) {
         while (SDL_PollEvent(&Event)) {
             onEvent(&Event);
-			pacman->handleEvent(Event);
+			for (int i=0; i < actoresJuego.size();i++) {
+				actoresJuego[i]->handleEvent(Event);
+			}
         }
-		// Mover Pacman
-		pacman->move();
-
-		// Mover Fantasma
-		fantasma.move();
+		//// Mover Pacman//movimiento
+		/*pacman->move();*/
 		
-		fruta->mostrar();
-		//Clear screen
-		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		//// Mover Fantasma
+		//fantasma->move();
+		//
+		//fruta->mostrar();
+		
+		for (int i = 0; i < actoresJuego.size(); i++) {
+			actoresJuego[i]->move();
+		}
+		for (int i = 0; i < actoresJuego.size(); i++) {
+			actoresJuego[i]->mostrar();
+		}
+		////Clear screen
+		SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
 		SDL_RenderClear(gRenderer);
 
 		//Update screen
-		
         onLoop();
         onRender();
 		SDL_RenderPresent(gRenderer);
@@ -75,7 +94,6 @@ int GameManager::onExecute() {
 bool GameManager::onInit() { 
     //Initialization flag
 	bool success = true;
-
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -93,7 +111,6 @@ bool GameManager::onInit() {
 		}
 		else
 		{
-			
 			//Create vsynced renderer for window
 			gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 			if (gRenderer == NULL)
@@ -103,38 +120,61 @@ bool GameManager::onInit() {
 			}
 			else
 			{
-				//Initialize renderer color
+				//Initialize renderer colort
 				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 			}
 			
-			
 			//Get window surface
 			gScreenSurface = SDL_GetWindowSurface(gWindow);
+			//cambiando textura
+			Texture::renderer = gRenderer;
+		//	//imagens pacman
+		//	PacmanTexture.push_back(new Texture());
+		//	PacmanTexture[0]->loadFromImage("Resources/PacMan.bmp");
 
-			/*if ((gPacManSurface = loadMediaToSurface("Resources/PacMan_01.bmp")) == NULL) {
-				return false;
-			}*/
+		///*	PacmanTexture = new Texture();
+		//	PacmanTexture->loadFromImage("Resources/PacMan.bmp");*/
+		//	//Imagenes fantasmas
+		//	fantasmaTexture.push_back(new Texture());
+		//	fantasmaTexture[0]->loadFromImage("Resources/Inkey.bmp");
+		//	fantasmaTexture.push_back(new Texture());
+		//	fantasmaTexture[1]->loadFromImage("Resources/Clyde.bmp");
+		//	fantasmaTexture.push_back(new Texture());
+		//	fantasmaTexture[2]->loadFromImage("Resources/Blinky.bmp");
+		///*	fantasmaTexture = new Texture();k
+		//	fantasmaTexture->loadFromImage("Resources/Blinky.bmp");
+		//	/*gFantasmaTexture = loadTexture("Resources/Fantasma.bmp");
+		//	if (gFantasmaTexture == NULL)
+		//	{	cout << "Fallo en la carga de la textura aqui" << endl;
+		//		success = false;}*/
 
-			/*if ((gPacManSurface = SDL_LoadBMP("Resources/PacMan_01.bmp")) == NULL) {
-				return false;
-			}*/
+		//	//imagenes de frutas
+		//	//gFrutasTextures.push_back(loadTexture("Resources/Fruta04.png"));
+		//	FrutaTexture.push_back(new Texture());
+		//	FrutaTexture[0]->loadFromImage("Resources/Fruta01.bmp");
+		//	FrutaTexture.push_back(new Texture());
+		//	FrutaTexture[1]->loadFromImage("Resources/fruta01.png");
+		//	FrutaTexture.push_back(new Texture());
+		//	FrutaTexture[2]->loadFromImage("Resources/fruta02.png");
+		//	FrutaTexture.push_back(new Texture());
+		//	FrutaTexture[3]->loadFromImage("Resources/fruta03.png");
+		//	FrutaTexture.push_back(new Texture());
+		//	FrutaTexture[4]->loadFromImage("Resources/fruta04.png");
 
-			gPacmanTexture = loadTexture("Resources/PacMan_01.bmp");
-			if (gPacmanTexture == NULL)
-			{
-				cout << "Fallo en la carga de la textura" << endl;
-				success = false;
-			}
-
-
-			if ((gFantasmaSurface = SDL_LoadBMP("Resources/Fantasma.bmp")) == NULL) {
-				return false;
-			}
-
-			if ((gFrutaSurface = SDL_LoadBMP("Resources/Fruta01.bmp")) == NULL) {
-				return false;
-			}
-		
+		//	MonedaTexture.push_back(new Texture());
+		//	MonedaTexture[0]->loadFromImage("Resources/mo1.jpg");
+		//	//MonedaTexture = new Texture();
+		//	//MonedaTexture->loadFromImage("Resources/mo1.jpg"); 
+		//	SuperMonedaTexture.push_back(new Texture());
+		//	SuperMonedaTexture[0]->loadFromImage("Resources/fruta04.png");
+		//	//SuperMonedaTexture = new Texture();
+		//	//SuperMonedaTexture->loadFromImage("Resources/point2.bmp");
+		//	////imagens de muros
+		//	MurosTexture.push_back(new Texture());
+		//	MurosTexture[0]->loadFromImage("Resources/point.bmp");
+		//	 
+		//	//MurosTexture = new Texture();
+			//MurosTexture->loadFromImage("Resources/point.bmp");
 		}
 	}
 
@@ -148,44 +188,16 @@ void GameManager::onEvent(SDL_Event* Event) {
 };
 void GameManager::onLoop() {};
 void GameManager::onRender() {
-	pacman->render();
-	fantasma.render();
-	fruta->render();
+	for (int i = 0; i < actoresJuego.size(); i++) {
+		actoresJuego[i]->renderObjetos();
+	}
+	/*pacman->update();*/
+	for (int i = 0; i < actoresJuego.size(); i++) {
+		actoresJuego[i]->update();
+	}
 };
-
 void GameManager::onCleanup() {
 	SDL_FreeSurface(gScreenSurface);
-	//SDL_FreeSurface(gPacManSurface);
-	SDL_FreeSurface(gFantasmaSurface);
-	SDL_FreeSurface(gFrutaSurface);
-
+	
 	SDL_Quit();
 };
-
-
-SDL_Texture* GameManager::loadTexture(string path)
-{
-	// Textura final generada
-	SDL_Texture* newTexture = nullptr;
-
-	// Carga una imagen de una ruta especifica
-	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
-	if (loadedSurface == NULL)
-	{
-		cout << "No se pudo cargarla imagen, SDL_image Error: " << IMG_GetError() << endl;
-	}
-	else
-	{
-		// Crea una textura a partir de una superficie de pixeles
-		newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
-		if (newTexture == NULL)
-		{
-			cout << "No se pudo crear la textura, SDL Error: " << SDL_GetError() << endl;
-		}
-
-		// Libera la superficie cargada
-		SDL_FreeSurface(loadedSurface);
-	}
-
-	return newTexture;
-}

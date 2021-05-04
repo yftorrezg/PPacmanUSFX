@@ -3,6 +3,7 @@
 #include <string>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -10,50 +11,55 @@
 #include "Pacman.h"
 #include "Fantasma.h"
 #include "Fruta.h"
-
+#include "Moneda.h"
+#include "Texture.h"
+#include "Muros.h"
+#include "MapGenerator.h"
 using namespace std;
 
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 600;
 
 class GameManager
 {
 private:
     bool juego_en_ejecucion;
-
     //The window we'll be rendering to
     SDL_Window* gWindow;
-
     //The window renderer
     SDL_Renderer* gRenderer;
-
     //The surface contained by the window
     SDL_Surface* gScreenSurface;
 
-    //The images we will load and show on the screen
-    //SDL_Surface* gPacManSurface;
-    SDL_Texture* gPacmanTexture;
-    SDL_Surface* gFantasmaSurface;
-    SDL_Surface* gFrutaSurface;
-
+    //vector<Texture*> PacmanTexture;
+    //vector<Texture*> fantasmaTexture;
+    ///*Texture* frutastexture = nullptr;*/
+    //vector<Texture*> FrutaTexture;
+    //vector<Texture*> MonedaTexture;
+    //vector<Texture*> SuperMonedaTexture;
+    //vector<Texture*> MurosTexture;
 public:
-    Pacman* pacman;
-    Fantasma fantasma;
-    Fruta* fruta;
+    //Pacman* pacman;
+    ////vector<Fantasma*> fantasma;
+    //Fantasma* fantasma;
+    //Fruta* fruta;
+    //vector<Moneda*> monedas;
+    //vector<Moneda*> superMonedas;
+    vector<GameObject*> actoresJuego;
+    /*Muros* muros;*/
+    MapGenerator* generadorNivelJuego;
 
 public:
     GameManager();
     int onExecute();
     
     bool onInit();
-
     void onEvent(SDL_Event* Event);
     void onLoop();
     void onRender();
     void onCleanup();
-    SDL_Texture* loadTexture(string path);   
 };
 
     
